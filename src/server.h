@@ -68,11 +68,9 @@ class VHALSocket {
     ~VHALSocket();
 
     int32_t initServer(const int &port);
-    int32_t initClient(const int &port, const char *addr);
     int32_t deinit(void);
 
     int32_t startServer(void);
-    int32_t startClient(void);
     int32_t stop(void);
 
     int32_t write(const std::vector<uint8_t> &buffer);

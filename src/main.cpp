@@ -1,8 +1,7 @@
 #include <algorithm>
+#include <cstring>
 #include <iostream>
 #include <memory>
-
-#define _WINPLATFORM
 
 /**
  * @todo:
@@ -19,6 +18,27 @@
     #include <WS2tcpip.h>
     #include <winsock2.h>
     #pragma comment(lib, "ws2_32.lib")
+
+// this server was developed in windows and for now, adapt linux stuff to windows
+#endif
+
+#ifdef _LINUXPLATFORM
+    #include <netinet/in.h>
+    #include <sys/socket.h>
+    #include <unistd.h>
+
+    // define socket error from windows
+    #define SOCKET_ERROR -1
+
+    // define invalid socket from windows
+    #define INVALID_SOCKET -1
+
+// define SOCKET type to use the same code
+typedef int SOCKET;
+#endif
+
+#ifdef _LINUXPLATFORM
+    #include <thread>
 #endif
 
 #include "logger.h"
@@ -45,9 +65,16 @@ int32_t VHALSocket::initServer(const int &port) {
     }
 
     sockaddr_in socketAddress;
-    socketAddress.sin_family           = AF_INET;
-    socketAddress.sin_port             = htons(port);
+    socketAddress.sin_family = AF_INET;
+    socketAddress.sin_port   = htons(port);
+
+#ifdef _WINPLATFORM
     socketAddress.sin_addr.S_un.S_addr = INADDR_ANY;
+#endif
+
+#ifdef _LINUXPLATFORM
+    socketAddress.sin_addr.s_addr = INADDR_ANY;
+#endif
 
     // C-style casts cause I can't do it with C++ casts
     if (bind(*(SOCKET *)this->m_ConnectionSocket, (sockaddr *)&socketAddress, sizeof(socketAddress)) != 0) {
@@ -69,11 +96,16 @@ int32_t VHALSocket::initServer(const int &port) {
 
 int32_t VHALSocket::deinit(void) {
     _LOG_MESSAGE(_LOG_INFO, "deinit called");
+#ifdef _WINPLATFORM
     closesocket(*(SOCKET *)this->m_Socket);
-    delete (SOCKET *)this->m_Socket;
-
     WSACleanup();
+#endif
 
+#ifdef _LINUXPLATFORM
+    close(*(SOCKET *)this->m_ConnectionSocket);
+#endif
+
+    delete (SOCKET *)this->m_Socket;
     return VHALSOCKET_STATUS_OK;
 }
 
@@ -86,7 +118,14 @@ int32_t VHALSocket::startServer(void) {
     }
 
     sockaddr_in client;
-    int         clientSize = sizeof(client);
+#ifdef _WINPLATFORM
+    int clientSize = sizeof(client);
+#endif
+
+#ifdef _LINUXPLATFORM
+    // not using `uint32_t` for consistency
+    unsigned int clientSize = sizeof(client);
+#endif
 
     *(SOCKET *)this->m_Socket = accept(*(SOCKET *)this->m_ConnectionSocket, (sockaddr *)&client, &clientSize);
     // since this is a server, hold the remote socket as the r/w socket
@@ -114,10 +153,16 @@ int32_t VHALSocket::startServer(void) {
     // #endif
 
     // C-style casts cause I can't do it with C++ casts
+#ifdef _WINPLATFORM
     closesocket(*(SOCKET *)this->m_ConnectionSocket);
+#endif
+
+#ifdef _LINUXPLATFORM
+    close(*(SOCKET *)this->m_ConnectionSocket);
+#endif
+
     delete (SOCKET *)this->m_ConnectionSocket;
 
-    uint8_t test_buffer[253];
     // update this
     while (this->m_ShouldServerRun == true) {
         std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(VHALSOCKET_MAX_CHARACTER_COUNTER);
@@ -189,7 +234,7 @@ int32_t VHALSocket::read(std::vector<uint8_t> &buffer) {
 }
 
 int32_t VHALSocket::registerReadCallback(void (*callbackFunction)()) {
-    readCallback = callbackFunction;
+    this->readCallback = callbackFunction;
     return VHALSOCKET_STATUS_OK;
 }
 
@@ -237,9 +282,10 @@ int32_t VHALSocket::readSocketBuffer(uint8_t *buffer) {
     int size = static_cast<int>(buffer[0]);
     recv(*(SOCKET *)this->m_Socket, reinterpret_cast<char *>(buffer), size, 0);
 
-    if (nullptr != readCallback) {
+    if (nullptr != this->readCallback) {
         _LOG_MESSAGE(_LOG_INFO, "calling receival callback");
-        readCallback();
+        std::cout << "hello from cb 1\n";
+        this->readCallback();
     }
 
     this->m_Queue.push(std::vector<uint8_t>(&buffer[0], &buffer[0] + size));
@@ -247,10 +293,38 @@ int32_t VHALSocket::readSocketBuffer(uint8_t *buffer) {
     return VHALSOCKET_STATUS_OK;
 }
 
+static VHALSocket socketMaster;
+static VHALSocket socketSlave;
+
+// find a way to bind this cb to the master socket. this would allow communicating through the cb functions
+void callbackFn(void) {
+    std::cout << "hello from cb\n";
+}
+
+void startMasterServer(void) {
+    socketMaster.initServer(8080);
+    socketMaster.startServer();
+    socketMaster.registerReadCallback(callbackFn);
+}
+
+void startSlaveServer(void) {
+    socketSlave.initServer(8081);
+    socketSlave.startServer();
+}
+
 int main(void) {
-    VHALSocket socket;
-    socket.initServer(8080);
-    socket.startServer();
+
+#ifdef _LINUXPLATFORM
+    std::thread t1(startMasterServer);
+    std::thread t2(startSlaveServer);
+
+    t1.join();
+    t2.join();
+#endif
+
+#ifdef _WINPLATFORM
+    startMasterServer();
+#endif
 
     return 0;
 }

@@ -42,7 +42,8 @@ def paint(event):
 
     if event.type == "5":
         prevPoint = [0, 0]
-
+        coordinates_str = [255, 4, 0, 0, 0, 0]
+        clientsocket.send(bytes(coordinates_str))
 
 root = Tk()
 
@@ -63,6 +64,7 @@ canvas.bind("<B1-Motion>", paint)
 canvas.bind("<ButtonRelease-1>", paint)
 canvas.bind("<Button-1>", paint)
 
+# update this to also have threading
 root.mainloop()
 
 # while True:

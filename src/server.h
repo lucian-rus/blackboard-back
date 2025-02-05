@@ -53,7 +53,7 @@ class VHALSocket {
     void *m_Socket;           /** holds the socket that manages r/w operations */
 
     // internal callback handlers
-    void (*readCallback)();  /** calback to read function (optional) */
+    void (*readCallback)(std::vector<uint8_t>);  /** calback to read function (optional) */
     void (*writeCallback)(); /** calback to write function (optional) */
 
     // internal queue that holds all messages
@@ -76,7 +76,7 @@ class VHALSocket {
     int32_t write(const std::vector<uint8_t> &buffer);
     int32_t read(std::vector<uint8_t> &buffer);
 
-    int32_t registerReadCallback(void (*callbackFunction)());
+    int32_t registerReadCallback(void (*callbackFunction)(std::vector<uint8_t>));
     int32_t registerWriteCallback(void (*callbackFunction)());
 };
 

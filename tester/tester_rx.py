@@ -1,46 +1,14 @@
 import socket
 import time
 from tkinter import *
+import threading
 
 clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-clientsocket.connect(('localhost', 8081))
-
+clientsocket.connect(('localhost', 8085))
+    
 # Variables
 prevPoint = [0, 0]
 currentPoint = [0, 0]
-
-# Paint Function
-def paint(event):
-    global prevPoint
-    global currentPoint
-
-
-    xl = ((x >> 8) & 0xff)
-    xr = (x & 0xff)
-    yl = ((y >> 8) & 0xff)
-    yr = (y & 0xff)
-    coordinates_str = [255, 4, xl, xr, yl, yr]
-    print(coordinates_str)
-    clientsocket.send(bytes(coordinates_str))
-
-    currentPoint = [x, y]
-
-    if prevPoint != [0, 0]:
-        canvas.create_polygon(
-            prevPoint[0],
-            prevPoint[1],
-            currentPoint[0],
-            currentPoint[1],
-            fill="black",
-            outline="black",
-            width=1,
-        )
-
-    prevPoint = currentPoint
-
-    if event.type == "5":
-        prevPoint = [0, 0]
-
 
 root = Tk()
 
@@ -56,13 +24,40 @@ frame2.grid(row=1, column=0)
 canvas = Canvas(frame2, height=650, width=1100, bg="white")
 canvas.grid(row=0, column=0)
 canvas.place(relx=0.5, rely=0.5, anchor=CENTER)
-# Event Binding
-canvas.bind("<B1-Motion>", paint)
-canvas.bind("<ButtonRelease-1>", paint)
-canvas.bind("<Button-1>", paint)
+
+def comm_thread():
+    global prevPoint
+    global currentPoint
+    global canvas 
+    global clientsocket
+
+    while True:
+        buf = clientsocket.recv(255)
+        coord_list = list(buf)
+
+        x = coord_list[2] << 8 | coord_list[3]
+        y = coord_list[4] << 8 | coord_list[5]
+
+        if x == 0 and y == 0:
+            prevPoint = [0, 0]
+        
+        print(x, y)
+        currentPoint = [x, y]
+
+        if prevPoint != [0, 0]:
+            canvas.create_polygon(
+                prevPoint[0],
+                prevPoint[1],
+                currentPoint[0],
+                currentPoint[1],
+                fill="black",
+                outline="black",
+                width=1,
+            )
+
+        prevPoint = currentPoint
+
+thread1 = threading.Thread(target=comm_thread)
+thread1.start()
 
 root.mainloop()
-
-# while True:
-#     clientsocket.send(b'\xff\x05hello')
-#     time.sleep(3)

@@ -233,7 +233,7 @@ int32_t VHALSocket::read(std::vector<uint8_t> &buffer) {
     return VHALSOCKET_STATUS_OK;
 }
 
-int32_t VHALSocket::registerReadCallback(void (*callbackFunction)()) {
+int32_t VHALSocket::registerReadCallback(void (*callbackFunction)(std::vector<uint8_t>)) {
     this->readCallback = callbackFunction;
     return VHALSOCKET_STATUS_OK;
 }
@@ -282,10 +282,17 @@ int32_t VHALSocket::readSocketBuffer(uint8_t *buffer) {
     int size = static_cast<int>(buffer[0]);
     recv(*(SOCKET *)this->m_Socket, reinterpret_cast<char *>(buffer), size, 0);
 
+    // @todo: remove this once i get a better way of sending data back and forth
+    std::vector<uint8_t> fwdBuffer(buffer, buffer + sizeof(buffer)/sizeof(buffer[0]));
+
+    for(size_t i = 0; i < fwdBuffer.size(); i++) {
+        std::cout << (int)fwdBuffer[i] << ' ';
+    }
+    std::cout << "\n";
+    this->readCallback(fwdBuffer);
+
     if (nullptr != this->readCallback) {
         _LOG_MESSAGE(_LOG_INFO, "calling receival callback");
-        std::cout << "hello from cb 1\n";
-        this->readCallback();
     }
 
     this->m_Queue.push(std::vector<uint8_t>(&buffer[0], &buffer[0] + size));
@@ -296,19 +303,21 @@ int32_t VHALSocket::readSocketBuffer(uint8_t *buffer) {
 static VHALSocket socketMaster;
 static VHALSocket socketSlave;
 
-// find a way to bind this cb to the master socket. this would allow communicating through the cb functions
-void callbackFn(void) {
-    std::cout << "hello from cb\n";
+// this now works, but is not the best way to do this
+void callbackFn(const std::vector<uint8_t> buffer) {
+    socketSlave.write(buffer);
 }
 
 void startMasterServer(void) {
     socketMaster.initServer(8080);
-    socketMaster.startServer();
+    // @todo: add protections
     socketMaster.registerReadCallback(callbackFn);
+
+    socketMaster.startServer();
 }
 
 void startSlaveServer(void) {
-    socketSlave.initServer(8081);
+    socketSlave.initServer(8085);
     socketSlave.startServer();
 }
 

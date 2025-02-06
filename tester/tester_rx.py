@@ -4,59 +4,93 @@ from tkinter import *
 import threading
 
 clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-clientsocket.connect(('localhost', 8085))
+clientsocket.connect(('localhost', 16081))
     
-# Variables
-prevPoint = [0, 0]
-currentPoint = [0, 0]
+######################################################################
+prev_point = [0, 0]
+current_point = [0, 0]
+color = "black"
 
 root = Tk()
-
-root.title("tester")
+root.title("tester RX")
 root.geometry("1100x650")
 
 root.resizable(False, False)
-# Main Frame
-frame2 = Frame(root, height=650, width=1100)
-frame2.grid(row=1, column=0)
+main_frame = Frame(root, height=650, width=1100)
+main_frame.grid(row=0, column=0)
 
-# Making a Canvas
-canvas = Canvas(frame2, height=650, width=1100, bg="white")
+# canvas
+canvas = Canvas(main_frame, height=650, width=1100, bg="white")
 canvas.grid(row=0, column=0)
 canvas.place(relx=0.5, rely=0.5, anchor=CENTER)
 
+######################################################################
+def exec_exit():
+    print("oi got called for close")
+    clientsocket.close()
+    root.quit()
+    exit()
+
+def update_coordinates(recv_list):
+    x = recv_list[3] << 8 | recv_list[4]
+    y = recv_list[5] << 8 | recv_list[6]
+    return (x, y)
+
+def update_color(recv_list):
+    global color
+    if recv_list[3] == 0:
+        color = "red"
+    elif recv_list[3] == 1:
+        color = "blue"
+    elif recv_list[3] == 2:
+        color = "yellow"
+    elif recv_list[3] == 3:
+        color = "green"
+    elif recv_list[3] == 4:
+        color = "black"
+
 def comm_thread():
-    global prevPoint
-    global currentPoint
+    global prev_point
+    global current_point
     global canvas 
     global clientsocket
+    global color
 
     while True:
-        buf = clientsocket.recv(255)
-        coord_list = list(buf)
+        buf = clientsocket.recv(10)
+        recv_list = list(buf)
+        print(recv_list)
 
-        x = coord_list[2] << 8 | coord_list[3]
-        y = coord_list[4] << 8 | coord_list[5]
+        x, y = 0, 0
+        if recv_list[2] == 255:
+            exec_exit()
+        elif recv_list[2] == 0:
+            x, y = update_coordinates(recv_list)
+        elif recv_list[2] == 1:
+            update_color(recv_list)
+        else:
+            print("unhandled")
 
         if x == 0 and y == 0:
-            prevPoint = [0, 0]
+            prev_point = [0, 0]
         
         print(x, y)
-        currentPoint = [x, y]
+        current_point = [x, y]
 
-        if prevPoint != [0, 0]:
+        if prev_point != [0, 0]:
             canvas.create_polygon(
-                prevPoint[0],
-                prevPoint[1],
-                currentPoint[0],
-                currentPoint[1],
-                fill="black",
-                outline="black",
+                prev_point[0],
+                prev_point[1],
+                current_point[0],
+                current_point[1],
+                fill=color,
+                outline=color,
                 width=1,
             )
 
-        prevPoint = currentPoint
+        prev_point = current_point
 
+######################################################################
 thread1 = threading.Thread(target=comm_thread)
 thread1.start()
 

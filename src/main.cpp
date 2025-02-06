@@ -133,25 +133,6 @@ int32_t VHALSocket::startServer(void) {
 
     this->m_ConnectionEstablished = true;
 
-    // this is not working with GCC on windows ???
-    // uses memory for no reason if not in debug mode, so only compile it in debug mode
-    // #ifdef _LOG_ENABLED
-    //     char host[NI_MAXHOST];
-    //     char service[NI_MAXHOST];
-    //     memset(host, 0, sizeof(host));
-    //     memset(service, 0, sizeof(service));
-
-    //     if (getnameinfo((sockaddr *)&client, sizeof(client), host, NI_MAXHOST, service, NI_MAXSERV, 0) == 0) {
-    //         _LOG_STRING(_LOG_INFO, "host: ", host);
-    //         _LOG_STRING(_LOG_INFO, "service: ", service);
-    //     }
-    //     else {
-    //         inet_ntop(AF_INET, &client.sin_addr, host, NI_MAXHOST);
-    //         _LOG_STRING(_LOG_INFO, "host: ", host);
-    //         _LOG_VALUE(_LOG_INFO, "port: ", ntohs(client.sin_port));
-    //     }
-    // #endif
-
     // C-style casts cause I can't do it with C++ casts
 #ifdef _WINPLATFORM
     closesocket(*(SOCKET *)this->m_ConnectionSocket);
@@ -306,10 +287,21 @@ static VHALSocket socketSlave;
 // this now works, but is not the best way to do this
 void callbackFn(const std::vector<uint8_t> buffer) {
     socketSlave.write(buffer);
+
+    // if we get an exit signal, just kill
+    if(255 == buffer[0]) {
+        socketSlave.stop();
+        socketMaster.stop();
+
+        socketSlave.deinit();
+        socketMaster.deinit();
+    }
 }
 
+// @todo: start working on tcp gibberish protection
+// @todo: start working on frame integrity
 void startMasterServer(void) {
-    socketMaster.initServer(8080);
+    socketMaster.initServer(16080);
     // @todo: add protections
     socketMaster.registerReadCallback(callbackFn);
 
@@ -317,7 +309,7 @@ void startMasterServer(void) {
 }
 
 void startSlaveServer(void) {
-    socketSlave.initServer(8085);
+    socketSlave.initServer(16081);
     socketSlave.startServer();
 }
 

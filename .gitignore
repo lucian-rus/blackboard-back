@@ -1,2 +1,9 @@
 *.exe
 /build/output
+
+# python-venv directories and files
+bin/
+lib/
+lib64/
+lib64
+include/

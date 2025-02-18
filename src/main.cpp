@@ -301,7 +301,7 @@ void callbackFn(const std::vector<uint8_t> buffer) {
 // @todo: start working on tcp gibberish protection
 // @todo: start working on frame integrity
 void startMasterServer(void) {
-    socketMaster.initServer(16080);
+    socketMaster.initServer(_APK_CONN);
     // @todo: add protections
     socketMaster.registerReadCallback(callbackFn);
 
@@ -309,7 +309,7 @@ void startMasterServer(void) {
 }
 
 void startSlaveServer(void) {
-    socketSlave.initServer(16081);
+    socketSlave.initServer(_APP_CONN);
     socketSlave.startServer();
 }
 

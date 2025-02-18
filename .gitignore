@@ -1,9 +1,12 @@
-*.exe
-/build/output
+/build/CMakeFiles
+/build/components
+/build/cmake_install.cmake
+/build/CMakeCache.txt
+/build/Makefile
 
 # python-venv directories and files
-bin/
-lib/
-lib64/
-lib64
-include/
+scripts/env/bin/
+scripts/env/lib/
+scripts/env/lib64/
+scripts/env/lib64
+scripts/env/include/

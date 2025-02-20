@@ -5,8 +5,11 @@
 /build/Makefile
 
 # python-venv directories and files
-scripts/env/bin/
-scripts/env/lib/
-scripts/env/lib64/
-scripts/env/lib64
-scripts/env/include/
+/tools/scripts/env/bin/
+/tools/scripts/env/lib/
+/tools/scripts/env/lib64/
+/tools/scripts/env/lib64
+/tools/scripts/env/include/
+
+# vs-code files to ignore
+.vscode/settings.json

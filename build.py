@@ -6,7 +6,7 @@ import time
 arg_dict = {}
 
 def execute_build():
-    os.chdir('build')
+    os.chdir(os.path.dirname(__file__) + '/build')
 
     # execute build
     os.system('cmake ..')
@@ -14,7 +14,7 @@ def execute_build():
 
 def run_backend():
     # run server
-    os.chdir('output')
+    os.chdir(os.path.dirname(__file__) + '/build/output')
     os.system('./backend')
 
 def run_tester_tx():
@@ -40,7 +40,8 @@ def run_callable():
         # waits 2 seconds for server to be properly started
         time.sleep(2)
 
-        os.chdir('../../tester')
+        os.chdir(os.path.dirname(__file__) + '/tools/tester')
+        os.system("alias python=\"python3\"")
         tester_rx_thread = threading.Thread(target=run_tester_rx)
         tester_tx_thread = threading.Thread(target=run_tester_tx)
         tester_rx_thread.start()

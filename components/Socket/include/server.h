@@ -48,11 +48,13 @@ class VHALSocket {
 
     bool m_ConnectionEstablished;
 
-    // internal soscket handlers
+    // internal soscket handlers -> update to smart pointers
     void *m_ConnectionSocket; /** holds the connection socket (for both server and client use) */
     void *m_Socket;           /** holds the socket that manages r/w operations */
 
-    // internal callback handlers
+    std::vector<uint8_t> m_commStartPrefix; /** buffer prefix */
+
+    // internal callback handlers -> maybe try doing this in a better way
     void (*readCallback)(std::vector<uint8_t>);  /** calback to read function (optional) */
     void (*writeCallback)(); /** calback to write function (optional) */
 
@@ -61,6 +63,7 @@ class VHALSocket {
 
     // internal functions
     int32_t initSocket(void);
+    // update this to vector
     int32_t readSocketBuffer(uint8_t *buffer);
 
   public:
@@ -75,6 +78,8 @@ class VHALSocket {
 
     int32_t write(const std::vector<uint8_t> &buffer);
     int32_t read(std::vector<uint8_t> &buffer);
+
+    int32_t registerCommStartPrefix(const std::vector<uint8_t> &buffer);
 
     int32_t registerReadCallback(void (*callbackFunction)(std::vector<uint8_t>));
     int32_t registerWriteCallback(void (*callbackFunction)());

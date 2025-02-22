@@ -47,5 +47,11 @@ def run_callable():
         tester_rx_thread.start()
         tester_tx_thread.start()
 
+# function to check if virtual environment is enabled. if not, activate it
+def virtual_env_running():
+    return 'VIRTUAL_ENV' in os.environ
 
+# @todo: update this to handle venv init
+# if not virtual_env_running():
+#     os.system('/bin/bash --rcfile ' + os.path.dirname(__file__) + '/tools/scripts/env/bin/activate')
 run_callable()

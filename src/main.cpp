@@ -33,7 +33,10 @@ void callbackFn(const std::vector<uint8_t> buffer) {
         socketMaster.deinit();
     }
 }
-
+// @todo: update socket to handle different identification buffers
+//// go from 255 to variable pattern of chars (for example 0xff/0xa5/0x5a/0xa5/0x5a/0xff)
+// this helps with gibberish protection and frame integrity
+// maybe add crc just for fun
 // @todo: start working on tcp gibberish protection
 // @todo: start working on frame integrity
 void startMasterServer(void) {

@@ -41,7 +41,6 @@ VHALSocket::~VHALSocket() {
 int32_t VHALSocket::initServer(const int &port) {
     _LOG_MESSAGE(_LOG_INFO, "server init called");
 
-    // @todo: make this portable to linux, return different types of errors
     if (VHALSOCKET_STATUS_OK != this->initSocket()) {
         _LOG_VALUE(_LOG_WARNING, "server init failed, status code: ", VHALSOCKET_STATUS_SOCKET_BIND_FAIL);
         return VHALSOCKET_STATUS_SERVER_INIT_FAIL;
@@ -77,6 +76,7 @@ int32_t VHALSocket::initServer(const int &port) {
     return VHALSOCKET_STATUS_OK;
 }
 
+// handle error on socket closure ???
 int32_t VHALSocket::deinit(void) {
     _LOG_MESSAGE(_LOG_INFO, "deinit called");
 #ifdef _WINPLATFORM
@@ -169,6 +169,7 @@ int32_t VHALSocket::write(const std::vector<uint8_t> &buffer) {
         return -1;
     }
 
+    // check if this works as intended
     std::unique_ptr<uint8_t[]> aux = std::make_unique<uint8_t[]>(VHALSOCKET_MAX_CHARACTER_COUNTER + 2);
     aux[0]                         = VHALSOCKET_BUFFER_START_CHAR;
     aux[1]                         = buffer.size();
@@ -180,6 +181,7 @@ int32_t VHALSocket::write(const std::vector<uint8_t> &buffer) {
     return VHALSOCKET_STATUS_OK;
 }
 
+//@todo proper error handling
 int32_t VHALSocket::read(std::vector<uint8_t> &buffer) {
     _LOG_MESSAGE(_LOG_INFO, "read buffer called");
     if (false == this->m_ConnectionEstablished) {

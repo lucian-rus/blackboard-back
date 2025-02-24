@@ -5,6 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/**"
             ],
+            // edit these to alter application behaviour for the intellisense engine
             "defines": [
                 "_APK_CONN=16080",
                 "_APP_CONN=16081",

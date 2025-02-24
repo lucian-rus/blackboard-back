@@ -27,20 +27,6 @@
 #define VHALSOCKET_BUFFER_START_CHAR     255 /** signal the VHALSocket that a new valid transmission is happening */
 #define VHALSOCKET_BUFFER_START_PADDING  2   /** transmission buffer padding (consumes the 2 reserved bytes) */
 
-typedef enum _SocketCmd {
-    SocketCmd_Coordinates = 1,
-} SocketCmd_t;
-
-typedef struct _SocketData {
-    SocketCmd_t cmd;
-    void *data;
-} SocketData_t;
-
-typedef struct _Coord {
-    uint16_t x;
-    uint16_t y;
-} Coord_t;
-
 class VHALSocket {
   private:
     bool m_ShouldServerRun; /** signals if the server main loop should run */
@@ -54,7 +40,7 @@ class VHALSocket {
 
     std::vector<uint8_t> m_commStartPrefix; /** buffer prefix */
 
-    // internal callback handlers -> maybe try doing this in a better way
+    // internal callback handlers -> maybe try doing this in a better way. this should be updated to be
     void (*readCallback)(std::vector<uint8_t>);  /** calback to read function (optional) */
     void (*writeCallback)(); /** calback to write function (optional) */
 
@@ -67,13 +53,21 @@ class VHALSocket {
     int32_t readSocketBuffer(uint8_t *buffer);
 
   public:
+    typedef struct _CallbackParam {
+      void* param;  /** pointer to param */
+      uint32_t paramType /** type of param */;
+    } CallbackParam_t;
+
+    // class 
     VHALSocket();
     ~VHALSocket();
 
     int32_t initServer(const int &port);
+    int32_t initClient(const int &port);
     int32_t deinit(void);
 
     int32_t startServer(void);
+    int32_t startClient(void);
     int32_t stop(void);
 
     int32_t write(const std::vector<uint8_t> &buffer);

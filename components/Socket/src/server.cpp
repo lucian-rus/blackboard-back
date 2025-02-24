@@ -1,5 +1,12 @@
-#include <memory>
 #include <cstring>
+#include <memory>
+
+#include "logger.h"
+#include "server.h"
+
+/** these macros are here just for readability sake */
+#define STATUS_OK   0
+#define STATUS_FAIL 1
 
 #ifdef _WINPLATFORM
     #include <WS2tcpip.h>
@@ -23,9 +30,6 @@
 // define SOCKET type to use the same code
 typedef int SOCKET;
 #endif
-
-#include "logger.h"
-#include "server.h"
 
 VHALSocket::VHALSocket()
     : m_ShouldServerRun(false), m_ShouldClientRun(false), m_ConnectionEstablished(false), m_ConnectionSocket(nullptr),
@@ -58,12 +62,13 @@ int32_t VHALSocket::initServer(const int &port) {
     socketAddress.sin_addr.s_addr = INADDR_ANY;
 #endif
 
-    // C-style casts cause I can't do it with C++ casts
-    if (bind(*(SOCKET *)this->m_ConnectionSocket, (sockaddr *)&socketAddress, sizeof(socketAddress)) != 0) {
+    if (STATUS_OK
+        != bind(*static_cast<SOCKET *>(this->m_ConnectionSocket), reinterpret_cast<sockaddr *>(&socketAddress),
+                sizeof(socketAddress))) {
         _LOG_VALUE(_LOG_WARNING, "socket bind failed, status code: ", VHALSOCKET_STATUS_SOCKET_BIND_FAIL);
         return VHALSOCKET_STATUS_SOCKET_BIND_FAIL;
     }
-    if (listen(*(SOCKET *)this->m_ConnectionSocket, SOMAXCONN) != 0) {
+    if (STATUS_OK != listen(*static_cast<SOCKET *>(this->m_ConnectionSocket), SOMAXCONN)) {
         _LOG_VALUE(_LOG_WARNING, "socket listener failed, status code: ", VHALSOCKET_STATUS_SOCKET_START_FAIL);
         return VHALSOCKET_STATUS_SOCKET_START_FAIL;
     }
@@ -80,22 +85,22 @@ int32_t VHALSocket::initServer(const int &port) {
 int32_t VHALSocket::deinit(void) {
     _LOG_MESSAGE(_LOG_INFO, "deinit called");
 #ifdef _WINPLATFORM
-    closesocket(*(SOCKET *)this->m_Socket);
+    closesocket(*static_cast<SOCKET *>(this->m_Socket));
     WSACleanup();
 #endif
 
 #ifdef _LINUXPLATFORM
-    close(*(SOCKET *)this->m_ConnectionSocket);
+    close(*static_cast<SOCKET *>(this->m_ConnectionSocket));
 #endif
 
-    delete (SOCKET *)this->m_Socket;
+    delete static_cast<SOCKET *>(this->m_Socket);
     return VHALSOCKET_STATUS_OK;
 }
 
 int32_t VHALSocket::startServer(void) {
     _LOG_MESSAGE(_LOG_INFO, "server start called");
 
-    if (this->m_ShouldServerRun == false) {
+    if (false == this->m_ShouldServerRun) {
         _LOG_VALUE(_LOG_WARNING, "server start failed, status: ", VHALSOCKET_STATUS_SERVER_NOT_INIT);
         return VHALSOCKET_STATUS_SERVER_NOT_INIT;
     }
@@ -110,7 +115,8 @@ int32_t VHALSocket::startServer(void) {
     unsigned int clientSize = sizeof(client);
 #endif
 
-    *(SOCKET *)this->m_Socket = accept(*(SOCKET *)this->m_ConnectionSocket, (sockaddr *)&client, &clientSize);
+    *static_cast<SOCKET *>(this->m_Socket)
+        = accept(*static_cast<SOCKET *>(this->m_ConnectionSocket), reinterpret_cast<sockaddr *>(&client), &clientSize);
     // since this is a server, hold the remote socket as the r/w socket
     _LOG_MESSAGE(_LOG_INFO, "new connection accepted called");
 
@@ -118,35 +124,36 @@ int32_t VHALSocket::startServer(void) {
 
     // C-style casts cause I can't do it with C++ casts
 #ifdef _WINPLATFORM
-    closesocket(*(SOCKET *)this->m_ConnectionSocket);
+    closesocket(*static_cast<SOCKET *>(this->m_ConnectionSocket));
 #endif
 
 #ifdef _LINUXPLATFORM
-    close(*(SOCKET *)this->m_ConnectionSocket);
+    close(*static_cast<SOCKET *>(this->m_ConnectionSocket));
 #endif
 
-    delete (SOCKET *)this->m_ConnectionSocket;
+    delete static_cast<SOCKET *>(this->m_ConnectionSocket);
 
     // update this
-    while (this->m_ShouldServerRun == true) {
+    while (true == this->m_ShouldServerRun) {
         std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(VHALSOCKET_MAX_CHARACTER_COUNTER);
 
-        int bytes = recv(*(SOCKET *)this->m_Socket, reinterpret_cast<char *>(buffer.get()), 1, 0);
-        if (bytes == SOCKET_ERROR) {
+        // update this ?
+        int bytes = recv(*static_cast<SOCKET *>(this->m_Socket), reinterpret_cast<char *>(buffer.get()), 1, 0);
+        if (SOCKET_ERROR == bytes) {
             this->~VHALSocket();
 
             _LOG_MESSAGE(_LOG_WARNING, "socket error. closing socket");
             return VHALSOCKET_STATUS_SOCKET_ERROR;
         }
 
-        if (bytes == 0) {
+        if (0 == bytes) {
             this->~VHALSocket();
 
             _LOG_MESSAGE(_LOG_WARNING, "socket connection closed");
             return VHALSOCKET_STATUS_SOCKET_CLOSED;
         }
 
-        if (bytes == 1) {
+        if (1 == bytes) {
             this->readSocketBuffer(buffer.get());
         }
     }
@@ -166,7 +173,7 @@ int32_t VHALSocket::stop(void) {
 int32_t VHALSocket::write(const std::vector<uint8_t> &buffer) {
     _LOG_MESSAGE(_LOG_INFO, "write buffer called");
     if (false == this->m_ConnectionEstablished) {
-        return -1;
+        return STATUS_FAIL;
     }
 
     // check if this works as intended
@@ -175,7 +182,8 @@ int32_t VHALSocket::write(const std::vector<uint8_t> &buffer) {
     aux[1]                         = buffer.size();
 
     std::copy(buffer.begin(), buffer.end(), aux.get() + VHALSOCKET_BUFFER_START_PADDING);
-    send(*(SOCKET *)this->m_Socket, reinterpret_cast<char *>(aux.get()), buffer.size() + VHALSOCKET_BUFFER_START_PADDING, 0);
+    send(*static_cast<SOCKET *>(this->m_Socket), reinterpret_cast<char *>(aux.get()),
+         buffer.size() + VHALSOCKET_BUFFER_START_PADDING, 0);
     _LOG_BUFFER(_LOG_INFO, "buffer sent: ", buffer.data(), buffer.size());
 
     return VHALSOCKET_STATUS_OK;
@@ -185,11 +193,11 @@ int32_t VHALSocket::write(const std::vector<uint8_t> &buffer) {
 int32_t VHALSocket::read(std::vector<uint8_t> &buffer) {
     _LOG_MESSAGE(_LOG_INFO, "read buffer called");
     if (false == this->m_ConnectionEstablished) {
-        return -1;
+        return STATUS_FAIL;
     }
 
-    if (this->m_Queue.empty() == true) {
-        return -1;
+    if (true == this->m_Queue.empty()) {
+        return STATUS_FAIL;
     }
 
     std::copy(this->m_Queue.front().begin(), this->m_Queue.front().end(), std::back_inserter(buffer));
@@ -217,7 +225,7 @@ int32_t VHALSocket::initSocket(void) {
     WORD    ver       = MAKEWORD(2, 2);
     int     wsHandler = WSAStartup(ver, &wsData);
 
-    if (wsHandler != 0) {
+    if (STATUS_OK != wsHandler) {
         _LOG_VALUE(_LOG_WARNING, "winsocket init failed, status code: ", VHALSOCKET_STATUS_WINSOCKET_INIT_FAIL);
         return VHALSOCKET_STATUS_WINSOCKET_INIT_FAIL;
     }
@@ -225,9 +233,9 @@ int32_t VHALSocket::initSocket(void) {
 
     _LOG_MESSAGE(_LOG_INFO, "creating socket");
     this->m_ConnectionSocket = new SOCKET;
-    // C-style casts cause I can't do it with C++ casts
-    *(SOCKET *)this->m_ConnectionSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (*(SOCKET *)this->m_ConnectionSocket == INVALID_SOCKET) {
+
+    *static_cast<SOCKET *>(this->m_ConnectionSocket) = socket(AF_INET, SOCK_STREAM, 0);
+    if (INVALID_SOCKET == (*static_cast<SOCKET *>(this->m_ConnectionSocket))) {
         _LOG_VALUE(_LOG_WARNING, "socket creation failed, status code: ", VHALSOCKET_STATUS_SOCKET_INIT_FAIL);
         return VHALSOCKET_STATUS_SOCKET_INIT_FAIL;
     }
@@ -238,18 +246,18 @@ int32_t VHALSocket::initSocket(void) {
 
 int32_t VHALSocket::readSocketBuffer(uint8_t *buffer) {
     if (VHALSOCKET_BUFFER_START_CHAR != buffer[0]) {
-        return -1;
+        return STATUS_FAIL;
     }
 
     _LOG_MESSAGE(_LOG_INFO, "socket message received");
     memset(buffer, 0, VHALSOCKET_MAX_CHARACTER_COUNTER);
-    recv(*(SOCKET *)this->m_Socket, reinterpret_cast<char *>(buffer), 1, 0);
+    recv(*static_cast<SOCKET *>(this->m_Socket), reinterpret_cast<char *>(buffer), 1, 0);
 
     int size = static_cast<int>(buffer[0]);
-    recv(*(SOCKET *)this->m_Socket, reinterpret_cast<char *>(buffer), size, 0);
+    recv(*static_cast<SOCKET *>(this->m_Socket), reinterpret_cast<char *>(buffer), size, 0);
 
     // @todo: remove this once i get a better way of sending data back and forth
-    std::vector<uint8_t> fwdBuffer(buffer, buffer + sizeof(buffer)/sizeof(buffer[0]));
+    std::vector<uint8_t> fwdBuffer(buffer, buffer + sizeof(buffer) / sizeof(buffer[0]));
     this->readCallback(fwdBuffer);
 
     if (nullptr != this->readCallback) {

@@ -1,6 +1,12 @@
-#ifndef _VSOCKET_H
-#define _VSOCKET_H
+#pragma once
 
+/** @todo:
+ * update to be configurable
+ *    * supports TCPMessage LIB
+ *    * support internal buffer -> limited functionality
+ *    * define support for logger -> enable/disable
+ *    * define support for external error manager -> enable/disable
+ */
 #include <stdint.h>
 
 #include <queue>
@@ -28,37 +34,13 @@
 #define VHALSOCKET_BUFFER_START_PADDING  2   /** transmission buffer padding (consumes the 2 reserved bytes) */
 
 class VHALSocket {
-  private:
-    bool m_ShouldServerRun; /** signals if the server main loop should run */
-    bool m_ShouldClientRun; /** signals if the client main loop should run */
-
-    bool m_ConnectionEstablished;
-
-    // internal soscket handlers -> update to smart pointers
-    void *m_ConnectionSocket; /** holds the connection socket (for both server and client use) */
-    void *m_Socket;           /** holds the socket that manages r/w operations */
-
-    std::vector<uint8_t> m_commStartPrefix; /** buffer prefix */
-
-    // internal callback handlers -> maybe try doing this in a better way. this should be updated to be
-    void (*readCallback)(std::vector<uint8_t>);  /** calback to read function (optional) */
-    void (*writeCallback)(); /** calback to write function (optional) */
-
-    // internal queue that holds all messages
-    std::queue<std::vector<uint8_t>> m_Queue; /** queue that holds all retrieved messages */
-
-    // internal functions
-    int32_t initSocket(void);
-    // update this to vector
-    int32_t readSocketBuffer(uint8_t *buffer);
-
   public:
     typedef struct _CallbackParam {
-      void* param;  /** pointer to param */
-      uint32_t paramType /** type of param */;
+        void    *param; /** pointer to param */
+        uint32_t paramType /** type of param */;
     } CallbackParam_t;
 
-    // class 
+    // class
     VHALSocket();
     ~VHALSocket();
 
@@ -73,10 +55,28 @@ class VHALSocket {
     int32_t write(const std::vector<uint8_t> &buffer);
     int32_t read(std::vector<uint8_t> &buffer);
 
-    int32_t registerCommStartPrefix(const std::vector<uint8_t> &buffer);
-
     int32_t registerReadCallback(void (*callbackFunction)(std::vector<uint8_t>));
     int32_t registerWriteCallback(void (*callbackFunction)());
-};
 
-#endif
+  private:
+    bool m_ShouldServerRun; /** signals if the server main loop should run */
+    bool m_ShouldClientRun; /** signals if the client main loop should run */
+
+    bool m_ConnectionEstablished;
+
+    // internal soscket handlers -> update to smart pointers
+    void *m_ConnectionSocket; /** holds the connection socket (for both server and client use) */
+    void *m_Socket;           /** holds the socket that manages r/w operations */
+
+    // internal callback handlers -> maybe try doing this in a better way. this should be updated to be
+    void (*readCallback)(std::vector<uint8_t>); /** calback to read function (optional) */
+    void (*writeCallback)();                    /** calback to write function (optional) */
+
+    // internal queue that holds all messages
+    std::queue<std::vector<uint8_t>> m_Queue; /** queue that holds all retrieved messages */
+
+    // internal functions
+    int32_t initSocket(void);
+    // update this to vector
+    int32_t readSocketBuffer(uint8_t *buffer);
+};

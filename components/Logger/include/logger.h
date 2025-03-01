@@ -1,5 +1,4 @@
-#ifndef LOGGER_H
-#define LOGGER_H
+#pragma once
 
 #define _LOG_INFO    "INFO     > "
 #define _LOG_WARNING "WARNING  > "
@@ -41,6 +40,4 @@ static void _log_string(const char *level, const char *message, const char *stri
     #define _LOG_VALUE(lvl, msg, val)
     #define _LOG_STRING(lvl, msg, str)
     #define _LOG_BUFFER(lvl, msg, buff, size)
-#endif
-
 #endif

@@ -28,6 +28,8 @@ class TCPConnection {
         ServerInitFail,
         SocketBindFail,
         SocketStartFail,
+        ServerStartFail,
+        ClientStartFail,
         /* socket-specific errors */
         SocketError,
         SocketClosed,
@@ -43,6 +45,10 @@ class TCPConnection {
 
     void initServer(const int &port);
     void initClient(const int &port);
+    void deinit(void);
+
+    void startServer(void);
+    void startClient(void);
     void stop(void);
 
     void write(const TCPConnMsgType &data);
@@ -58,11 +64,19 @@ class TCPConnection {
 
   private:
     void* m_ConnectionSocket;
+    void* m_InternalSocket;
+
+    bool m_ServerEnabled;
+    bool m_ClientEnabled;
+
+    void (*readCallback)();
+    void (*writeCallback)();
 
 #if defined(_ENABLE_INTERNAL_ERR_SUPPORT)
     uint32_t m_InternalErrorReport = 0;
 #endif
 
     void initConnectionSocket(void);
-
+    void validateMessage(void);
+    void receiveMessage(void);
 };

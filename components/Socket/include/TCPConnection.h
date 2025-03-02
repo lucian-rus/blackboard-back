@@ -1,5 +1,11 @@
 #pragma once
 
+#include <stdint.h>
+#include <unordered_map>
+
+/* define 255 as start byte */
+#define TCPCONNECTION_MESSAGE_FRAMESTART 255
+
 /* if support for TCPMessage is not enabled, use internal buffers instead */
 #if defined(_ENABLE_TCPMESSAGE_SUPPORT)
     #include "TCPMessage.h"
@@ -7,16 +13,10 @@
     /* define message as TCPMessage */
     #define TCPConnMsgType TCPMessage
 #else
-    #include <stdint.h>
     #include <vector>
 
     /* define message as TCPMessage */
     #define TCPConnMsgType std::vector<uint8_t>
-#endif
-
-/* if support for Internal Error handling is enabled*/
-#if defined(_ENABLE_INTERNAL_ERR_SUPPORT)
-    #include <stdint.h>
 #endif
 
 class TCPConnection {
@@ -43,17 +43,18 @@ class TCPConnection {
     TCPConnection();
     ~TCPConnection();
 
-    void initServer(const int &port);
-    void initClient(const int &port);
+    void initServerSocket(const int &port);
+    /* @todo: implement support for client sockets */
+    void initClientSocket(const int &port);
     void deinit(void);
 
-    void startServer(void);
-    void startClient(void);
-    void stop(void);
+    /* returns index to client connection */
+    uint16_t acceptConnection(void);
 
-    void write(const TCPConnMsgType &data);
-    void read(TCPConnMsgType &data);
+    void           write(uint16_t connectionId, const TCPConnMsgType &data);
+    TCPConnMsgType read(uint16_t connectionId);
 
+    /* @todo: implement callback functionality */
     void registerReadCallback();
     void registerWriteCallback();
 
@@ -63,8 +64,11 @@ class TCPConnection {
 #endif
 
   private:
-    void* m_ConnectionSocket;
-    void* m_InternalSocket;
+    /* server connection socket */
+    void *m_ConnectionSocket;
+
+    /* vector containing clients connected */
+    std::unordered_map<uint16_t, void *> m_InternalSocketConnections;
 
     bool m_ServerEnabled;
     bool m_ClientEnabled;
@@ -76,7 +80,9 @@ class TCPConnection {
     uint32_t m_InternalErrorReport = 0;
 #endif
 
+    /* internal function to initialize connection */
     void initConnectionSocket(void);
-    void validateMessage(void);
-    void receiveMessage(void);
+
+    /* internal message receival and validation */
+    bool           validateMessage(int byteCounter);
 };

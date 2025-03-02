@@ -7,7 +7,9 @@
 #ifdef _LOG_ENABLED
     #include <iostream>
 
-    #define _LOG_DRIVER_TAG "VHALSocket  | "
+    #ifndef _LOG_DRIVER_TAG
+    #define _LOG_DRIVER_TAG "<Default>   | "
+    #endif
 
     #define _LOG_MESSAGE(lvl, msg)            _log_message(lvl, msg)
     #define _LOG_VALUE(lvl, msg, val)         _log_value(lvl, msg, val)

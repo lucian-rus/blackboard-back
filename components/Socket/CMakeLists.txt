@@ -1,14 +1,15 @@
-add_library(socket.lib STATIC
+add_library(TCPConnection.lib STATIC
 # sources
-  src/server.cpp
+  src/TCPConnection.cpp
 # includes
-  include/server.h
+  include/TCPConnection.h
 )
 
-set_target_properties(socket.lib PROPERTIES LINKER_LANGUAGE CXX)
+add_compile_definitions(_LOG_DRIVER_TAG="TCPMessage  | ")
+set_target_properties(TCPConnection.lib PROPERTIES LINKER_LANGUAGE CXX)
 
-target_include_directories(socket.lib PUBLIC include)
+target_include_directories(TCPConnection.lib PUBLIC include)
 
-target_link_libraries(socket.lib
+target_link_libraries(TCPConnection.lib
     logger.lib
 )

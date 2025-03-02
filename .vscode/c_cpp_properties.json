@@ -7,7 +7,7 @@
             ],
             // edit these to alter application behaviour for the intellisense engine
             "defines": [
-                "_APK_CONN=16080",
+                "_SOCKET_NUMBER=16080",
                 "_APP_CONN=16081",
                 "_LINUXPLATFORM"
                 // "_ENABLE_INTERNAL_ERR_SUPPORT"

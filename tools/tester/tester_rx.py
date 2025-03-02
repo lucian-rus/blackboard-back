@@ -4,7 +4,7 @@ from tkinter import *
 import threading
 
 clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-clientsocket.connect(('localhost', 16081))
+clientsocket.connect(('localhost', 16080))
     
 ######################################################################
 prev_point = [0, 0]
@@ -57,7 +57,7 @@ def comm_thread():
     global color
 
     while True:
-        buf = clientsocket.recv(10)
+        buf = clientsocket.recv(7)
         recv_list = list(buf)
         print(recv_list)
 

@@ -12,7 +12,9 @@ backend for the blackboard app. socket-based forward engine that enables sending
 * run `tools/scripts/setup/setup.sh` to install dependencies
 * run `python build.py` to build the project
 * run `python build.py -r` to run the server right after build
-* run `python build.py -r -t` to run the server alongside the test applications
+* run `python build.py -r -tx` to run the server alongside the TX test application
+* run `python build.py -r -rx` to run the server alongside the RX test application
+* run `python build.py -r -tx -rx` to run the server alongside the both test applications
 
 tester apps can be seen in the image attached below
 ![alt text](doc/resources/tester-apps.png)

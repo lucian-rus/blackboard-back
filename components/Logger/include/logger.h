@@ -8,7 +8,7 @@
     #include <iostream>
 
     #ifndef _LOG_DRIVER_TAG
-    #define _LOG_DRIVER_TAG "<Default>   | "
+        #define _LOG_DRIVER_TAG "<Default>         | "
     #endif
 
     #define _LOG_MESSAGE(lvl, msg)            _log_message(lvl, msg)
@@ -24,7 +24,8 @@ template <typename T> static void _log_value(const char *level, const char *mess
     std::cout << _LOG_DRIVER_TAG << level << message << static_cast<unsigned long>(value) << std::endl;
 }
 
-template <typename T> static void _log_buffer(const char *level, const char *message, const T *buffer, const size_t &size) {
+template <typename T>
+static void _log_buffer(const char *level, const char *message, const T *buffer, const size_t &size) {
     std::cout << _LOG_DRIVER_TAG << level << message;
     for (size_t i = 0; i < size; i++) {
         std::cout << static_cast<unsigned long>(buffer[i]) << ' ';

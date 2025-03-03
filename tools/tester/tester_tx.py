@@ -2,7 +2,7 @@ import socket
 import tkinter as tk
 
 clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-clientsocket.connect(('localhost', 16080))
+clientsocket.connect(('localhost', 8080))
 
 ######################################################################
 prev_point = [0, 0]
@@ -23,7 +23,7 @@ def paint(event):
     yl = ((y >> 8) & 0xff)
     yr = (y & 0xff)
     coordinates_str = [255, 5, 0, xl, xr, yl, yr]
-    print(coordinates_str)
+    # print(coordinates_str)
     clientsocket.send(bytes(coordinates_str))
 
     current_point = [x, y]
@@ -75,14 +75,14 @@ def exec_exit():
 root = tk.Tk()
 
 root.title("tester TX")
-root.geometry("1100x650")
+root.geometry("1280x850")
 
 root.resizable(False, False)
 main_frame = tk.Frame(root)
 main_frame.grid(row=0, column=0)
 
-btn_frame = tk.Frame(main_frame, height=50, width=1100)
-canvas_frame = tk.Frame(main_frame, height=600, width=1100)
+btn_frame = tk.Frame(main_frame, height=50, width=1280)
+canvas_frame = tk.Frame(main_frame, height=800, width=1280)
 
 btn_frame.grid(row=0, column=0)
 canvas_frame.grid(row=1, column=0)
@@ -103,7 +103,7 @@ btn_black.grid(row=0, column=4)
 btn_exit.grid(row=0, column=5)
 
 # canvas
-canvas = tk.Canvas(canvas_frame, height=600, width=1100, bg="white")
+canvas = tk.Canvas(canvas_frame, height=800, width=1280, bg="white")
 canvas.place(relx=0.5, rely=0.5, anchor="center")
 
 # event bindings

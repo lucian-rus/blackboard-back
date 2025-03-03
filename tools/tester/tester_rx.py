@@ -4,29 +4,29 @@ from tkinter import *
 import threading
 
 clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-clientsocket.connect(('localhost', 16080))
+clientsocket.connect(('localhost', 8080))
     
 ######################################################################
 prev_point = [0, 0]
 current_point = [0, 0]
-color = "black"
+color = "white"
 
 root = Tk()
 root.title("tester RX")
-root.geometry("1100x650")
+root.geometry("1480x720")
 
 root.resizable(False, False)
-main_frame = Frame(root, height=650, width=1100)
+main_frame = Frame(root, height=720, width=1480)
 main_frame.grid(row=0, column=0)
 
 # canvas
-canvas = Canvas(main_frame, height=650, width=1100, bg="white")
+canvas = Canvas(main_frame, height=720, width=1480, bg="black")
 canvas.grid(row=0, column=0)
 canvas.place(relx=0.5, rely=0.5, anchor=CENTER)
 
 ######################################################################
 def exec_exit():
-    print("oi got called for close")
+    # print("oi got called for close")
     clientsocket.close()
     root.quit()
     exit()
@@ -34,7 +34,7 @@ def exec_exit():
 def update_coordinates(recv_list):
     x = recv_list[3] << 8 | recv_list[4]
     y = recv_list[5] << 8 | recv_list[6]
-    return (x, y)
+    return (x/2, y/2)
 
 def update_color(recv_list):
     global color
@@ -74,7 +74,7 @@ def comm_thread():
         if x == 0 and y == 0:
             prev_point = [0, 0]
         
-        print(x, y)
+        # print(x, y)
         current_point = [x, y]
 
         if prev_point != [0, 0]:

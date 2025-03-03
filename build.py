@@ -36,16 +36,25 @@ def run_callable():
         backend_thread = threading.Thread(target=run_backend)
         backend_thread.start()
 
-    if '-t' in arg_dict:
+    if '-tx' in arg_dict:
         # waits 2 seconds for server to be properly started
         time.sleep(2)
 
         os.chdir(os.path.dirname(__file__) + '/tools/tester')
         os.system("alias python=\"python3\"")
-        tester_rx_thread = threading.Thread(target=run_tester_rx)
         tester_tx_thread = threading.Thread(target=run_tester_tx)
-        tester_rx_thread.start()
         tester_tx_thread.start()
+
+    if '-rx' in arg_dict:
+        # waits 2 seconds for server to be properly started
+        time.sleep(2)
+        
+        os.chdir(os.path.dirname(__file__) + '/tools/tester')
+        os.system("alias python=\"python3\"")
+
+        tester_rx_thread = threading.Thread(target=run_tester_rx)
+        tester_rx_thread.start()
+
 
 # function to check if virtual environment is enabled. if not, activate it
 def virtual_env_running():

@@ -19,14 +19,30 @@ static TCPConnection socketMaster;
 
 void startMasterServer(void) {
     socketMaster.initServerSocket(_SOCKET_NUMBER);
+    uint16_t tester_tx = 0xFFFF;
+    uint16_t tester_rx = 0xFFFF;
+
+#if defined(_CLIENT_CONN_LIMIT)
+    socketMaster.setClientConnectionsLimit(_CLIENT_CONN_LIMIT);
+#endif
 
     /* this is fine, as the data from tx should be sent to rx only if we receive it. */
-    uint16_t tester_tx = socketMaster.acceptConnection();
-    uint16_t tester_rx = socketMaster.acceptConnection();
+#if defined(_ENABLE_TX_APP)
+    tester_tx = socketMaster.acceptConnection(); // update this to only work from the apk -> front
+#endif
+
+#if defined(_ENABLE_RX_APP)
+    tester_rx = socketMaster.acceptConnection();
+#endif
 
     while (1) {
+#if defined(_ENABLE_TX_APP)
         TCPConnMsgType message = socketMaster.read(tester_tx);
+#endif
+
+#if defined(_ENABLE_RX_APP)
         socketMaster.write(tester_rx, message);
+#endif
 
         if (message[0] == 255) {
             break;

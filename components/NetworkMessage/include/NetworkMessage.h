@@ -3,17 +3,18 @@
 #include <stdint.h>
 #include <vector>
 
-class TCPMessage {
+class NetworkMessage {
   public:
     // class
-    TCPMessage();
-    ~TCPMessage();
+    NetworkMessage();
+    ~NetworkMessage();
 
     /**
-     * @brief Function to register the `header` of a TCP message. The header is defined as the first x bytes in the incoming frame which are used to validate it.
+     * @brief Function to register the `header` of a TCP message. The header is defined as the first x bytes in the
+     * incoming frame which are used to validate it.
      *
      * @param[in] buffer
-     * 
+     *
      * @return (void)
      */
     void registerCommStartHeader(const std::vector<uint8_t> &buffer);

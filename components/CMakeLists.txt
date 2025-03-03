@@ -1,4 +1,4 @@
 add_subdirectory(Logger)
 add_subdirectory(Socket)
-add_subdirectory(TCPMessage)
+add_subdirectory(NetworkMessage)
 

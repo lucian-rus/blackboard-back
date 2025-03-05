@@ -1,5 +1,5 @@
 #include "TCPConnection.h"
-#include "logger.h"
+#include "Logger.h"
 
 #include <cstring>
 #include <memory>

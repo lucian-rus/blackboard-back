@@ -11,5 +11,5 @@ set_target_properties(NetworkMessage.lib PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(NetworkMessage.lib PUBLIC include)
 
 target_link_libraries(NetworkMessage.lib
-    logger.lib
+    Logger.lib
 )

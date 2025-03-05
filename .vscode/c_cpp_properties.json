@@ -5,13 +5,11 @@
             "includePath": [
                 "${workspaceFolder}/**"
             ],
-            // edit these to alter application behaviour for the intellisense engine
             "defines": [
                 "_SOCKET_NUMBER=16080",
                 "_LINUXPLATFORM",
                 "_ENABLE_TX_APP",
                 "_ENABLE_RX_APP"
-                // "_ENABLE_INTERNAL_ERR_SUPPORT"
             ],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c17",
@@ -19,6 +17,5 @@
             "intelliSenseMode": "linux-gcc-x64"
         }
     ],
-    
     "version": 4
 }

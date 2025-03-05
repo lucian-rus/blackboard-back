@@ -5,6 +5,8 @@ import threading
 
 clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 clientsocket.connect(('localhost', 8080))
+connection_validation = [255, 4, 169, 185, 169, 185]
+clientsocket.send(bytes(connection_validation))
     
 ######################################################################
 prev_point = [0, 0]

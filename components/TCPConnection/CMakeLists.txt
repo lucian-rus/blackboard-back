@@ -12,5 +12,5 @@ set_target_properties(TCPConnection.lib PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(TCPConnection.lib PUBLIC include)
 
 target_link_libraries(TCPConnection.lib
-    logger.lib
+  Logger.lib
 )

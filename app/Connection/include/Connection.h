@@ -19,7 +19,8 @@ class Connection {
     Connection(TCPConnection *p_socket);
     ~Connection();
 
-    void executeAssociatedFunction(TCPConnMsgType *message);
+    void             executeAssociatedFunction(TCPConnMsgType *message);
+    ConnectionType_t getConnectionType(void);
 
   private:
     TCPConnection   *m_InternalSocketReference;

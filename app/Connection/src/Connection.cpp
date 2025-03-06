@@ -29,10 +29,16 @@ Connection::~Connection() {
 
 void Connection::executeAssociatedFunction(TCPConnMsgType *message) {
     if (ConnectionType_t::ConnectionType_Incoming == this->m_ConnectionType) {
+        _LOG_MESSAGE(_LOG_INFO, "receiving message");
         (*message) = this->m_InternalSocketReference->read(this->m_SocketId);
     }
 
     if (ConnectionType_t::ConnectionType_Outgoing == this->m_ConnectionType) {
+        _LOG_MESSAGE(_LOG_INFO, "sending message");
         this->m_InternalSocketReference->write(this->m_SocketId, (*message));
     }
+}
+
+Connection::ConnectionType_t Connection::getConnectionType(void) {
+    return this->m_ConnectionType;
 }

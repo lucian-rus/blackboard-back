@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "Connection.h"
 
 /**
@@ -19,14 +21,23 @@ void startMasterServer(void) {
     socketMaster.setClientConnectionsLimit(_CLIENT_CONN_LIMIT);
 #endif
 
+    bool l_isVectorSorted = false;
+
     while (true) {
         if (_CLIENT_CONN_LIMIT != connections.size()) {
             connections.push_back(Connection(&socketMaster));
             continue;
         }
-        
+
+        /* the sorting is done because the apk connection always should be the first executed. this ensures the message
+         * is received and can be forwarded to all other applications*/
+        if (false == l_isVectorSorted) {
+            std::sort(connections.begin(), connections.end(),
+                      [](auto &lhs, auto &rhs) { return lhs.getConnectionType() < rhs.getConnectionType(); });
+        }
+
         TCPConnMsgType message;
-        for(auto& conn: connections) {
+        for (auto &conn : connections) {
             conn.executeAssociatedFunction(&message);
         }
 

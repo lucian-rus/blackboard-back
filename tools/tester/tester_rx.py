@@ -2,16 +2,23 @@ import socket
 import time
 from tkinter import *
 import threading
+import sys
 
 clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-clientsocket.connect(('localhost', 8080))
-connection_validation = [255, 4, 169, 185, 169, 185]
-clientsocket.send(bytes(connection_validation))
+while True:
+    try:
+        clientsocket.connect((sys.argv[1], 8080))
+        connection_validation = [255, 4, 169, 185, 169, 185]
+        clientsocket.send(bytes(connection_validation))
+        break
+    except:
+        print("waiting...")
     
 ######################################################################
 prev_point = [0, 0]
 current_point = [0, 0]
 color = "white"
+current_color_counter = 0
 
 root = Tk()
 root.title("tester RX")
@@ -40,16 +47,26 @@ def update_coordinates(recv_list):
 
 def update_color(recv_list):
     global color
-    if recv_list[3] == 0:
-        color = "red"
-    elif recv_list[3] == 1:
+    global current_color_counter
+
+    current_color_counter = current_color_counter + 1
+    if 5 == current_color_counter:
+        current_color_counter = 0
+
+    if current_color_counter == 0:
+        color = "white"
+    elif current_color_counter == 1:
         color = "blue"
-    elif recv_list[3] == 2:
+    elif current_color_counter == 2:
         color = "yellow"
-    elif recv_list[3] == 3:
+    elif current_color_counter == 3:
         color = "green"
-    elif recv_list[3] == 4:
-        color = "black"
+    elif current_color_counter == 4:
+        color = "red"
+
+def clear_canvas():
+    global canvas
+    canvas.delete("all")
 
 def comm_thread():
     global prev_point
@@ -70,6 +87,8 @@ def comm_thread():
             x, y = update_coordinates(recv_list)
         elif recv_list[2] == 1:
             update_color(recv_list)
+        elif recv_list[2] == 2:
+            clear_canvas()
         else:
             print("unhandled")
 

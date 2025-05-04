@@ -23,37 +23,48 @@ def run_tester_tx():
 
 def run_tester_rx():
     # run tester tx
-    os.system('python tester_rx.py')
+    os.system('python tester_rx.py localhost')
+
+def run_tester_rx_no_server():
+    # run tester tx
+    os.system('python tester_rx.py ' + sys.argv[2])
 
 def run_callable():
-    execute_build()
-
     input_args = sys.argv
     for arg in input_args[1:]:
         arg_dict[arg] = None
 
-    if '-r' in arg_dict:
-        backend_thread = threading.Thread(target=run_backend)
-        backend_thread.start()
-
-    if '-tx' in arg_dict:
-        # waits 2 seconds for server to be properly started
-        time.sleep(2)
-
-        os.chdir(os.path.dirname(__file__) + '/tools/tester')
-        os.system("alias python=\"python3\"")
-        tester_tx_thread = threading.Thread(target=run_tester_tx)
-        tester_tx_thread.start()
-
-    if '-rx' in arg_dict:
-        # waits 2 seconds for server to be properly started
-        time.sleep(2)
-        
+    if '--no-server' in arg_dict:
         os.chdir(os.path.dirname(__file__) + '/tools/tester')
         os.system("alias python=\"python3\"")
 
-        tester_rx_thread = threading.Thread(target=run_tester_rx)
+        tester_rx_thread = threading.Thread(target=run_tester_rx_no_server)
         tester_rx_thread.start()
+    else:
+        execute_build()
+
+        if '-r' in arg_dict:
+            backend_thread = threading.Thread(target=run_backend)
+            backend_thread.start()
+
+        if '-tx' in arg_dict:
+            # waits 2 seconds for server to be properly started
+            time.sleep(2)
+
+            os.chdir(os.path.dirname(__file__) + '/tools/tester')
+            os.system("alias python=\"python3\"")
+            tester_tx_thread = threading.Thread(target=run_tester_tx)
+            tester_tx_thread.start()
+
+        if '-rx' in arg_dict:
+            # waits 2 seconds for server to be properly started
+            time.sleep(2)
+            
+            os.chdir(os.path.dirname(__file__) + '/tools/tester')
+            os.system("alias python=\"python3\"")
+
+            tester_rx_thread = threading.Thread(target=run_tester_rx)
+            tester_rx_thread.start()
 
 
 # function to check if virtual environment is enabled. if not, activate it

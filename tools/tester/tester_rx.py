@@ -19,6 +19,7 @@ prev_point = [0, 0]
 current_point = [0, 0]
 color = "white"
 current_color_counter = 0
+current_line_width = 1
 
 root = Tk()
 root.title("tester RX")
@@ -68,12 +69,20 @@ def clear_canvas():
     global canvas
     canvas.delete("all")
 
+def update_line_width():
+    global current_line_width
+
+    current_line_width += 1
+    if 8 == current_line_width:
+        current_line_width = 1
+
 def comm_thread():
     global prev_point
     global current_point
     global canvas 
     global clientsocket
     global color
+    global current_line_width
 
     while True:
         buf = clientsocket.recv(7)
@@ -89,6 +98,8 @@ def comm_thread():
             update_color(recv_list)
         elif recv_list[2] == 2:
             clear_canvas()
+        elif recv_list[2] == 3:
+            update_line_width()
         else:
             print("unhandled")
 
@@ -106,7 +117,7 @@ def comm_thread():
                 current_point[1],
                 fill=color,
                 outline=color,
-                width=1,
+                width=(2 * current_line_width),
             )
 
         prev_point = current_point

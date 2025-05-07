@@ -4,15 +4,15 @@ from tkinter import *
 import threading
 import sys
 
-clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-while True:
-    try:
-        clientsocket.connect((sys.argv[1], 8080))
-        connection_validation = [255, 4, 169, 185, 169, 185]
-        clientsocket.send(bytes(connection_validation))
-        break
-    except:
-        print("waiting...")
+# clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# while True:
+#     try:
+#         clientsocket.connect((sys.argv[1], 8080))
+#         connection_validation = [255, 4, 169, 185, 169, 185]
+#         clientsocket.send(bytes(connection_validation))
+#         break
+#     except:
+#         print("waiting...")
     
 ######################################################################
 prev_point = [0, 0]
@@ -20,20 +20,27 @@ current_point = [0, 0]
 color = "white"
 current_color_counter = 0
 current_line_width = 1
+zoom_amount = 100
 
 root = Tk()
 root.title("tester RX")
-root.geometry("1480x720")
+root.geometry("1600x800")
 
 root.resizable(False, False)
-main_frame = Frame(root, height=720, width=1480)
+main_frame = Frame(root, height=800, width=1600)
 main_frame.grid(row=0, column=0)
 
 # canvas
-canvas = Canvas(main_frame, height=720, width=1480, bg="black")
+canvas = Canvas(main_frame, height=800, width=1600, bg="black")
 canvas.grid(row=0, column=0)
 canvas.place(relx=0.5, rely=0.5, anchor=CENTER)
 
+def on_mousewheel():
+    global zoom_amount
+    print(zoom_amount)
+    zoom_amount += 10
+
+root.bind("<MouseWheel>", on_mousewheel)
 ######################################################################
 def exec_exit():
     # print("oi got called for close")
@@ -76,6 +83,16 @@ def update_line_width():
     if 8 == current_line_width:
         current_line_width = 1
 
+def draw_grid():
+    global zoom_amount
+    global canvas
+
+    for i in range(0, 1600, zoom_amount):
+        canvas.create_line(i, 0, i, 800, fill="gray26")
+
+    for i in range(0, 800, zoom_amount):
+        canvas.create_line(0, i, 1600, i, fill="gray26")
+
 def comm_thread():
     global prev_point
     global current_point
@@ -85,40 +102,42 @@ def comm_thread():
     global current_line_width
 
     while True:
-        buf = clientsocket.recv(7)
-        recv_list = list(buf)
-        print(recv_list)
+        draw_grid()
 
-        x, y = 0, 0
-        if recv_list[2] == 255:
-            exec_exit()
-        elif recv_list[2] == 0:
-            x, y = update_coordinates(recv_list)
-        elif recv_list[2] == 1:
-            update_color(recv_list)
-        elif recv_list[2] == 2:
-            clear_canvas()
-        elif recv_list[2] == 3:
-            update_line_width()
-        else:
-            print("unhandled")
+        # buf = clientsocket.recv(7)
+        # recv_list = list(buf)
+        # print(recv_list)
 
-        if x == 0 and y == 0:
-            prev_point = [0, 0]
+        # x, y = 0, 0
+        # if recv_list[2] == 255:
+        #     exec_exit()
+        # elif recv_list[2] == 0:
+        #     x, y = update_coordinates(recv_list)
+        # elif recv_list[2] == 1:
+        #     update_color(recv_list)
+        # elif recv_list[2] == 2:
+        #     clear_canvas()
+        # elif recv_list[2] == 3:
+        #     update_line_width()
+        # else:
+        #     print("unhandled")
+
+        # if x == 0 and y == 0:
+        #     prev_point = [0, 0]
         
-        # print(x, y)
-        current_point = [x, y]
+        # # print(x, y)
+        # current_point = [x, y]
 
-        if prev_point != [0, 0]:
-            canvas.create_polygon(
-                prev_point[0],
-                prev_point[1],
-                current_point[0],
-                current_point[1],
-                fill=color,
-                outline=color,
-                width=(2 * current_line_width),
-            )
+        # if prev_point != [0, 0]:
+        #     canvas.create_polygon(
+        #         prev_point[0],
+        #         prev_point[1],
+        #         current_point[0],
+        #         current_point[1],
+        #         fill=color,
+        #         outline=color,
+        #         width=(2 * current_line_width),
+        #     )
 
         prev_point = current_point
 
